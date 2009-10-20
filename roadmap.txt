@@ -1,0 +1,7 @@
+I would like to have 
+a) a single model for instrument and portfolio valuation, optimzation, and stressing
+b) parallel implemenations in all the major languages
+c) Some way of gridifying any calculations in each language.
+	1) On multiple grid engines
+	2) DataSynapse, Amazon, haadoop, etc
+d) A tie-in to Google Apps spreadsheet so that you could perform financial engineering calculations using just google.
