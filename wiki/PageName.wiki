@@ -9,8 +9,8 @@ The quantref project contains the framework I use to calculate my solutions to t
 
 Currently, demonstration code is in the file hw2.java. This will be changed as the project formalizes. Valuations are produced by three interacting components:
 
-  #Valuator - I valuator is a pricing engine that produces values and risk measures given a StateOfTheWorld and an Instrument
-  #StateOfTheWorld - A container for all the market data needed to value an Instrument
-  #Instrument - A representation of a thing for which a price and risk measures can be determined.
+  # Valuator - I valuator is a pricing engine that produces values and risk measures given a StateOfTheWorld and an Instrument
+  # StateOfTheWorld - A container for all the market data needed to value an Instrument
+  # Instrument - A representation of a thing for which a price and risk measures can be determined.
 
 Most objects are immutable, or at least _intended_ to be immutable. Perturbations should be done by using a StateOfTheWorld factory to create a PerturbedStateOfTheWorld instance. If you need to add more data to StateOfTheWorld, you should use the factory to create a new StateOfTheWorld that includes your new data.
