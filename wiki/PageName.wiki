@@ -1,5 +1,3 @@
-#summary Welcome
-
 = Introduction =
 
 The quantref project contains the framework I use to calculate my solutions to the problems I encounter in my coursework at Stevens in their Masters of Financial Engineering program. The intent is to create a viable framework that demonstrates not just how to perform different calculations, but how to structure a multi-lingual valuation framework for derivatives. Error handling is kept to a minimum except where the handling is instructional.
