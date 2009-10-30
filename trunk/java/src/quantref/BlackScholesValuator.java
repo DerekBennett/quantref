@@ -26,7 +26,7 @@ public class BlackScholesValuator implements Valuator<Option> {
         double K = option.getStrike();
         double r = sotw.getInterestRate();
         double sigma = sotw.getVolatilities().get(option);
-        double tte = Days.daysBetween(sotw.getBusinessDate(),option.getExpiry()).getDays() / 365;
+        double tte = Days.daysBetween(sotw.getBusinessDate(),option.getExpiry()).getDays() / 365.0;
         double price = 0;
         try {
             price = blackScholesValue(option.getPoc(),So,sigma,tte,K,r);
