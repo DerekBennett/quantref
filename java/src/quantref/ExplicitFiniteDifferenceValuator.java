@@ -7,11 +7,11 @@ import org.joda.time.Days;
  * Date: Oct 24, 2009
  * Time: 3:39:49 PM
  */
-public class TrinomialTreeValuator implements Valuator<Option>{
+public class ExplicitFiniteDifferenceValuator implements Valuator<Option>{
     private StateOfTheWorld sotw;
     private int N=200;
 
-    public TrinomialTreeValuator(StateOfTheWorld sotw, int numberOfTreeSteps) {
+    public ExplicitFiniteDifferenceValuator(StateOfTheWorld sotw, int numberOfTreeSteps) {
         this.sotw = sotw;
         this.N = numberOfTreeSteps;
     }
@@ -32,19 +32,6 @@ public class TrinomialTreeValuator implements Valuator<Option>{
         double pd   = (xi - nu*dt/dx)/2;
         double disc = Math.exp(-r*dt);
 
-/*
-        //Initialize asset prices at maturity
-        double [][] St = new double[N+1][2*N+1];
-        int bottomEdge=N;
-        St[0][bottomEdge--] = So;
-        for (int i=1;i<N+1;i++) {
-            St[i][bottomEdge] = So*Math.exp(-i*dx);
-            for (int j=bottomEdge+1;j<=2*N-bottomEdge;j++) {
-                St[i][j] = St[i][j-1]*edx;
-            }
-            bottomEdge--;
-        }
-*/
         //Initialize asset prices at maturity
         double [] St = new double[2*N+1];
         St[0] = So*Math.exp(-N*dx);
