@@ -58,7 +58,7 @@ public class BlackScholesValuator implements Valuator<Option> {
         final double So = sotw.getPrices().get(option.getUnderlying());
         final double K = option.getStrike();
         final double r = sotw.getInterestRate();
-        final double tte = Days.daysBetween(sotw.getBusinessDate(),option.getExpiry()).getDays() / 365;
+        final double tte = Days.daysBetween(sotw.getBusinessDate(),option.getExpiry()).getDays() / 365.0;
         UnivariateRealSolverFactory factory = UnivariateRealSolverFactory.newInstance();
         UnivariateRealSolver rootFinder = factory.newBisectionSolver();
         UnivariateRealFunction blackScholes = new UnivariateRealFunction() {

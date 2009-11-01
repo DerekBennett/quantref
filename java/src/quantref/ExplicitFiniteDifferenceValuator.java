@@ -54,6 +54,7 @@ public class ExplicitFiniteDifferenceValuator implements Valuator<Option>{
                     V[i][j] = poc.equals(Poc.CALL) ? Math.max(V[i][j],St[j]-K) : Math.max(V[i][j],K-St[j]);
                 }
             }
+            //Boundary conditions
             V[i][0]=V[i][1];
             V[i][2*Nj]=V[i][2*Nj-1] + (St[2*Nj]-St[2*Nj-1]);
         }
