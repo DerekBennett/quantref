@@ -5,7 +5,6 @@ import static quantref.Poc.*;
 import java.util.*;
 
 import org.joda.time.LocalDate;
-import com.sun.tools.javac.util.Pair;
 
 /**
  * User: derekbennett
@@ -22,6 +21,8 @@ public class hw2 {
         hw2_problem6();
         hw2_problem7();
         hw2_problem9();
+        hw2_problem12and13();
+        hw2_problem14();
     }
 
     private static void hw2_problem1() {
@@ -291,8 +292,102 @@ public class hw2 {
         }
     }
 
+    private static void hw2_problem12and13() throws InvalidInstrumentException, ImmutablesAreImmutableException {
+        System.out.println("\n\n===================================================");
+        System.out.println("PROBLEM 12 and 13");
+        // Underlying stock objects
+        Linear GOOG = new Linear("GOOG",null,0.0);
+        Linear SP500 = new Linear("SP500",null,0.0);
 
+        // Important dates
+        LocalDate OCT09_DMO = new LocalDate(2009,10,1);
+        LocalDate DEC09_DMO = new LocalDate(2009,12,1);
+        LocalDate OCT09_EXP_GOOG = new LocalDate(2009,10,16);
+        LocalDate OCT09_EXP_SP500 = new LocalDate(2009,10,17);
+        LocalDate DEC09_EXP_GOOG = new LocalDate(2009,12,18);
+        LocalDate DEC09_EXP_SP500 = new LocalDate(2009,12,19);
 
+        //GOOG ATM options
+        Option GOOG_OCT_PUT_Option  = new Option(PUT,AMERICAN,OCT09_DMO,490,OCT09_EXP_GOOG,GOOG);
+        Option GOOG_DEC_PUT_Option  = new Option(PUT,AMERICAN,DEC09_DMO,490,DEC09_EXP_GOOG,GOOG);
+        //SP500 ATM options
+        Option SP500_OCT_PUT_Option  = new Option(PUT,AMERICAN,OCT09_DMO,1070,OCT09_EXP_SP500,SP500);
+        Option SP500_DEC_PUT_Option  = new Option(PUT,AMERICAN,DEC09_DMO,1070,DEC09_EXP_SP500,SP500);
+
+        //Set-up the state-of-the-world (along with implied volatilities because my calculations from hw1 were incorrect)
+        BaseStateOfTheWorld sotw = new BaseStateOfTheWorld(new LocalDate(2009,9,16),0.0017);// Fed Funds rate of 0.17%
+        BlackScholesValuator bsv = new BlackScholesValuator();
+        bsv.setStateOfTheWorld(sotw);
+        HashMap<Instrument, Double> prices = new HashMap<Instrument, Double>();
+        prices.put(GOOG,488.29);
+        prices.put(SP500,1068.76);
+        sotw.setPrices(prices);
+        HashMap<Option, Double> vols = new HashMap<Option, Double>();
+        vols.put(GOOG_OCT_PUT_Option  ,bsv.getImpliedVolatility(GOOG_OCT_PUT_Option  ,(17.3+17.6)/2.0).getPv());
+        vols.put(GOOG_DEC_PUT_Option  ,bsv.getImpliedVolatility(GOOG_DEC_PUT_Option  ,(27.5+27.9)/2.0).getPv());
+
+        vols.put(SP500_OCT_PUT_Option ,bsv.getImpliedVolatility(SP500_OCT_PUT_Option ,(25.8+28.2)/2.0).getPv());
+        vols.put(SP500_DEC_PUT_Option ,bsv.getImpliedVolatility(SP500_DEC_PUT_Option ,(50.1+52.5)/2.0).getPv());
+        sotw.setVolatilities(vols);
+
+        //Set-up a portfolio to iterate over
+        List<Option> portfolio = new ArrayList<Option>();
+        portfolio.add(GOOG_OCT_PUT_Option  );
+        portfolio.add(GOOG_DEC_PUT_Option  );
+        portfolio.add(SP500_OCT_PUT_Option );
+        portfolio.add(SP500_DEC_PUT_Option );
+
+        int timeSteps=300;
+        BinomialTreeValuator btv = new BinomialTreeValuator(sotw,timeSteps);
+        TrinomialTreeValuator ttv= new TrinomialTreeValuator(sotw,timeSteps);
+        ExplicitFiniteDifferenceValuator efdv= new ExplicitFiniteDifferenceValuator(sotw,timeSteps,timeSteps);
+        MonteCarloValuator mcv= new MonteCarloValuator(sotw,timeSteps,100000);
+        ImplicitFiniteDifferenceValuator ifdv= new ImplicitFiniteDifferenceValuator(sotw,timeSteps,timeSteps);
+        CrankNicholsonFiniteDifferenceValuator cnfdv= new CrankNicholsonFiniteDifferenceValuator(sotw,timeSteps,timeSteps);
+        System.out.println("OPTION\tBlack-Scholes\tBinomial\tTrinomial\tEFD\tMonteCarlo\tIFD\tCNFD");
+        for (Option option : portfolio){
+            System.out.printf("%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",option.getDescription(),
+                    bsv.getValuation(option).getPv(),
+                    btv.getValuation(option).getPv(),
+                    ttv.getValuation(option).getPv(),
+                    efdv.getValuation(option).getPv(),
+                    mcv.getValuation(option).getPv(),
+                    ifdv.getValuation(option).getPv(),
+                    cnfdv.getValuation(option).getPv());
+        }
+
+    }
+
+    private static void hw2_problem14() throws InvalidInstrumentException, ImmutablesAreImmutableException {
+        System.out.println("\n\n===================================================");
+        System.out.println("PROBLEM 14");
+        Linear testEurUnderlying = new Linear("syntheticUnderlying",null,0.0);
+        LocalDate TODAY = new LocalDate(2009,1,1);
+        LocalDate EXPIRY = TODAY.plusMonths(6); //T=.5
+        Option testEurCallOption = new Option(CALL, AMERICAN, TODAY,100,EXPIRY,testEurUnderlying);
+        BaseStateOfTheWorld sotw = new BaseStateOfTheWorld(TODAY,.11);
+        HashMap<Instrument, Double> prices = new HashMap<Instrument, Double>();
+        HashMap<Option, Double> vols = new HashMap<Option, Double>();
+        prices.put(testEurUnderlying,100.0);
+        vols.put(testEurCallOption,.3);
+        sotw.setPrices(prices);
+        sotw.setVolatilities(vols);
+
+        /*
+        Calculated value is 10.9571
+        For S0=100,  K=100, T=0.5, volatility=0.3, r=0.11, H=110
+         */
+        int i = 1000000;
+        BarrierValuator bmcv = new BarrierValuator(sotw,300,i,110);
+        long start = System.currentTimeMillis();
+        Valuation mcvValCall = bmcv.getValuation(testEurCallOption);
+        long total =  System.currentTimeMillis()-start;
+        System.out.println("number of iterations = " + i + " took " + total + "ms");
+        System.out.println("Am up and in call is " + mcvValCall.getPv() + " and should be 10.9571");
+        System.out.println("bmcv.stddev = " + bmcv.stddev);
+        System.out.println("bmcv.stderr = " + bmcv.stderr);
+    }
+ 
     private static void unitTests() throws InvalidInstrumentException, ImmutablesAreImmutableException {
         Linear TEST = new Linear("TEST UNDERLYING",null,0.0);
         LocalDate TEST_DMO = new LocalDate(2010,1,1);
@@ -348,5 +443,41 @@ public class hw2 {
         System.out.printf("%f\t%f\tTrinomialTree [%s]\n",testPutVal.getPv(),9.339475801,testPutOption.getDescription());
         System.out.printf("%f\t%f\tTrinomialTree [%s]\n",testCallAmVal.getPv(),14.21653335,testCallAmOption.getDescription());
         System.out.printf("%f\t%f\tTrinomialTree [%s]\n",testPutAmVal.getPv(),9.863161797,testPutAmOption.getDescription());
+
+        ExplicitFiniteDifferenceValuator efdv = new ExplicitFiniteDifferenceValuator(testSotw,2000,2000);
+        testCallVal = efdv.getValuation(testCallOption);
+        testPutVal = efdv.getValuation(testPutOption);
+        testCallAmVal = efdv.getValuation(testCallAmOption);
+        testPutAmVal = efdv.getValuation(testPutAmOption);
+        System.out.println("\nExplicitFiniteDifferenceValuator");
+        System.out.printf("calcuated\treference\n");
+        System.out.printf("%f\t%f\tExplicitFiniteDifferenceValuator [%s]\n",testCallVal.getPv(),14.21653335,testCallOption.getDescription());
+        System.out.printf("%f\t%f\tExplicitFiniteDifferenceValuator [%s]\n",testPutVal.getPv(),9.339475801,testPutOption.getDescription());
+        System.out.printf("%f\t%f\tExplicitFiniteDifferenceValuator [%s]\n",testCallAmVal.getPv(),14.21653335,testCallAmOption.getDescription());
+        System.out.printf("%f\t%f\tExplicitFiniteDifferenceValuator [%s]\n",testPutAmVal.getPv(),9.863161797,testPutAmOption.getDescription());
+
+        ImplicitFiniteDifferenceValuator ifdv = new ImplicitFiniteDifferenceValuator(testSotw,2000,2000);
+        testCallVal = ifdv.getValuation(testCallOption);
+        testPutVal = ifdv.getValuation(testPutOption);
+        testCallAmVal = ifdv.getValuation(testCallAmOption);
+        testPutAmVal = ifdv.getValuation(testPutAmOption);
+        System.out.println("\nImplicitFiniteDifferenceValuator");
+        System.out.printf("calcuated\treference\n");
+        System.out.printf("%f\t%f\tImplicitFiniteDifference [%s]\n",testCallVal.getPv(),14.21653335,testCallOption.getDescription());
+        System.out.printf("%f\t%f\tImplicitFiniteDifference [%s]\n",testPutVal.getPv(),9.339475801,testPutOption.getDescription());
+        System.out.printf("%f\t%f\tImplicitFiniteDifference [%s]\n",testCallAmVal.getPv(),14.21653335,testCallAmOption.getDescription());
+        System.out.printf("%f\t%f\tImplicitFiniteDifference [%s]\n",testPutAmVal.getPv(),9.863161797,testPutAmOption.getDescription());
+
+        CrankNicholsonFiniteDifferenceValuator cnfdv = new CrankNicholsonFiniteDifferenceValuator(testSotw,2000,2000);
+        testCallVal = cnfdv.getValuation(testCallOption);
+        testPutVal = cnfdv.getValuation(testPutOption);
+        testCallAmVal = cnfdv.getValuation(testCallAmOption);
+        testPutAmVal = cnfdv.getValuation(testPutAmOption);
+        System.out.println("\nCrankNicholsonFiniteDifferenceValuator");
+        System.out.printf("calcuated\treference\n");
+        System.out.printf("%f\t%f\tCrankNicholsonFiniteDifferenceValuator [%s]\n",testCallVal.getPv(),14.21653335,testCallOption.getDescription());
+        System.out.printf("%f\t%f\tCrankNicholsonFiniteDifferenceValuator [%s]\n",testPutVal.getPv(),9.339475801,testPutOption.getDescription());
+        System.out.printf("%f\t%f\tCrankNicholsonFiniteDifferenceValuator [%s]\n",testCallAmVal.getPv(),14.21653335,testCallAmOption.getDescription());
+        System.out.printf("%f\t%f\tCrankNicholsonFiniteDifferenceValuator [%s]\n",testPutAmVal.getPv(),9.863161797,testPutAmOption.getDescription());
     }
 }
