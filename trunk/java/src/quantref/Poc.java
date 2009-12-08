@@ -17,4 +17,12 @@ public enum Poc {
     public String toString() {
         return s;
     }
+    public static Poc parse(String s){
+        if (s.equalsIgnoreCase(PUT.toString()))
+            return PUT;
+        else if (s.equalsIgnoreCase(CALL.toString()))
+            return CALL;
+        else
+            return null;
+    }
 }
